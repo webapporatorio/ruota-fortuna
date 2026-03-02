@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruota della Fortuna Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // CONFIGURAZIONE FIREBASE (Usa la stessa della Tombola per comodità o creane una nuova)
+        const firebaseConfig = {
+            databaseURL: "https://tombola-53e42-default-rtdb.europe-west1.firebasedatabase.app/" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const estrazioniRef = ref(db, 'ruota/estrazioni');
+        const configRef = ref(db, 'ruota/config');
+
+        let isAdmin = false;
+
+        // Funzione Password
+        window.sbloccaAdmin = () => {
+            const pass = prompt("Codice Operatore:");
+            if (pass === "1234") {
+                isAdmin = true;
+                document.getElementById('admin-panel').classList.remove('hidden');
+            }
+        };
+
+        // Invia numero estratto
+        window.inviaNumero = () => {
+            const num = document.getElementById('input-numero').value;
+            const col = document.getElementById('select-colore').value;
+            if(!num) return;
+
+            push(estrazioniRef, {
+                valore: num,
+                colore: col,
+                ts: Date.now()
+            });
+            document.getElementById('input-numero').value = '';
+        };
+
+        // Reset Totale
+        window.resetRuota = () => {
+            if(confirm("Vuoi cancellare tutte le estrazioni?")) {
+                remove(estrazioniRef);
+            }
+        };
+
+        // Ascolto dati
+        onValue(estrazioniRef, (snapshot) => {
+            const container = document.getElementById('lista-estrazioni');
+            container.innerHTML = '';
+            const data = snapshot.val();
+            
+            if (data) {
+                // Trasformiamo l'oggetto in array e lo invertiamo per vedere l'ultimo numero per primo
+                Object.values(data).reverse().forEach(estrazione => {
+                    const el = document.createElement('div');
+                    el.className = `flex items-center justify-center w-20 h-20 rounded-full text-3xl font-black text-white shadow-lg animate-bounce-short ${estrazione.colore}`;
+                    el.innerText = estrazione.valore;
+                    container.appendChild(el);
+                });
+            } else {
+                container.innerHTML = '<p class="text-slate-500 italic">In attesa della prima estrazione...</p>';
+            }
+        });
+
+    </script>
+    <style>
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-short { animation: bounce-short 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+    <div class="max-w-md mx-auto p-6 text-center">
+        <header class="mb-8">
+            <h1 onclick="sbloccaAdmin()" class="text-4xl font-black text-orange-500 uppercase italic tracking-tighter cursor-pointer">
+                LA RUOTA
+            </h1>
+            <p class="text-slate-400 text-xs uppercase tracking-widest mt-1">Live Estrazioni</p>
+        </header>
+
+        <div id="admin-panel" class="hidden mb-8 p-4 bg-slate-800 rounded-2xl border-2 border-orange-500/50 shadow-2xl">
+            <p class="text-orange-400 text-[10px] font-bold uppercase mb-4">Pannello Controllo</p>
+            
+            <div class="flex flex-col gap-3">
+                <select id="select-colore" class="bg-slate-700 p-3 rounded-xl text-white outline-none border border-slate-600">
+                    <option value="bg-red-500">🔴 Manche ROSSA</option>
+                    <option value="bg-blue-500">🔵 Manche BLU</option>
+                    <option value="bg-green-500">🟢 Manche VERDE</option>
+                    <option value="bg-yellow-500">🟡 Manche GIALLA</option>
+                    <option value="bg-purple-500">🟣 Manche VIOLA</option>
+                </select>
+                
+                <input type="number" id="input-numero" placeholder="N° Estratto" 
+                       class="bg-slate-700 p-4 rounded-xl text-center text-2xl font-bold outline-none border border-slate-600 focus:border-orange-500">
+                
+                <button onclick="inviaNumero()" class="bg-orange-600 hover:bg-orange-500 p-4 rounded-xl font-black uppercase shadow-lg transition-all">
+                    PUBBLICA NUMERO
+                </button>
+                
+                <button onclick="resetRuota()" class="text-slate-500 text-xs mt-2 underline">
+                    Azzera Cronologia
+                </button>
+            </div>
+        </div>
+
+        <div class="relative">
+            <h2 class="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest text-left border-b border-slate-800 pb-2">
+                Ultimi numeri estratti
+            </h2>
+            
+            <div id="lista-estrazioni" class="flex flex-wrap gap-4 justify-center">
+                <p class="text-slate-600 italic">Caricamento...</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
