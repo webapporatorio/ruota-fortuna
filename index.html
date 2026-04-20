@@ -71,7 +71,7 @@
 
             push(ruotaRef, {
                 tipo: 'separatore',
-                titolo: `Numeri della ${numeroManche}° ruota`,
+                titolo: `Numeri della ${numeroManche}° estrazione`,
                 ts: serverTimestamp()
             });
         };
@@ -90,7 +90,7 @@
             
             if (data) {
                 let html = `<div class="border-l-4 border-orange-500 pl-4 mb-6 text-left">
-                                <h2 class="text-orange-500 font-black text-xl italic uppercase tracking-tighter">Numeri della 1° ruota</h2>
+                                <h2 class="text-orange-500 font-black text-xl italic uppercase tracking-tighter">Numeri della 1° estrazione</h2>
                             </div>
                             <div class="flex flex-wrap gap-3 mb-12">`;
 
@@ -112,7 +112,7 @@
                 container.innerHTML = html;
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             } else {
-                container.innerHTML = '<div class="py-10 text-center text-slate-700 font-black text-xl opacity-20 uppercase">In attesa della prima ruota...</div>';
+                container.innerHTML = '<div class="py-10 text-center text-slate-700 font-black text-xl opacity-20 uppercase">In attesa della prima estrazione...</div>';
             }
         });
     </script>
@@ -167,7 +167,7 @@
                 </div>
                 
                 <button onclick="resetRuota()" class="text-slate-700 text-[9px] font-bold uppercase mt-2 hover:text-red-500 transition-colors tracking-widest text-center w-full">
-                    RESET PARTITA
+                    RESET
                 </button>
             </div>
         </div>
